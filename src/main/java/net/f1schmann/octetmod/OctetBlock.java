@@ -17,36 +17,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 
 public class OctetBlock extends Block implements SimpleWaterloggedBlock {
     public static final IntegerProperty COMPOSITION = IntegerProperty.create("composition", 1, 255);
-    public static final VoxelShape[] VoxelOctets = makeVoxelOctets();
-    private static final VoxelShape[] VoxelShapes = new VoxelShape[256];
-
-    private static VoxelShape[] makeVoxelOctets() {
-        VoxelShape[] voxelOctets = new VoxelShape[8];
-        for (int i = 0; i < 2; i++)
-            for (int j = 0; j < 2; j++)
-                for(int k = 0; k < 2; k++)
-                    voxelOctets[i*4+j*2+k] = Shapes.box(i/2., j/2., k/2., (i+1)/2., (j+1)/2., (k+1)/2.);
-        return voxelOctets;
-    }
-
-    public static VoxelShape getVoxelShape(int index){
-        if (VoxelShapes[index] == null){
-            VoxelShape shape = Shapes.empty();
-            for (int mask = 0; mask < 8; mask++)
-                if ((index & (1<<mask)) != 0)
-                    shape = Shapes.or(shape, VoxelOctets[mask]);
-            VoxelShapes[index] = shape;
-        }
-        return VoxelShapes[index];
-    }
-
-    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return getVoxelShape(pState.getValue(COMPOSITION));
-    }
 
     public OctetBlock(Properties pProperties) {
         super(pProperties);
@@ -63,5 +38,9 @@ public class OctetBlock extends Block implements SimpleWaterloggedBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder){
         builder.add(COMPOSITION);
+    }
+
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        return OctetVoxelSupplier.getVoxelShape(pState.getValue(COMPOSITION));
     }
 }
